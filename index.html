@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Practice Panel - Big/Small</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#030a06;--card:#08170f;--line:#1c5a3a;--txt:#e6fff0;--mut:#7fae95;--g:#2ee27a;--r:#ff5a5a;--v:#b48cff}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--txt);font-family:"Rajdhani","Segoe UI",system-ui,sans-serif}
+.app{max-width:420px;margin:0 auto;padding:14px}
+.panel{background:var(--card);border:2px solid var(--line);border-radius:22px;padding:16px;box-shadow:0 0 24px rgba(46,226,122,.15)}
+.head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+h1{margin:0;font-size:22px;letter-spacing:1px}
+h1 span{color:var(--g)}
+.ver{color:var(--mut);font-size:13px;margin-top:4px}
+.st{text-align:right;font-size:13px;color:var(--mut);line-height:1.5}
+.st b{color:var(--g)}
+.bar{display:flex;justify-content:space-between;border:1px solid var(--line);border-radius:14px;padding:8px 12px;margin:14px 0;font-size:14px;color:var(--mut)}
+.bar b{color:var(--txt)}
+.stage{border:1px solid var(--line);border-radius:16px;padding:14px 10px 10px;background:linear-gradient(rgba(46,226,122,.06),transparent)}
+.balls{display:flex;justify-content:center;align-items:center;gap:14px;margin-bottom:14px}
+.ball{width:62px;height:62px;border-radius:50%;display:grid;place-items:center;font-size:30px;font-weight:700;color:#06210f;background:radial-gradient(circle at 35% 30%,#fff,#7ff0b0 55%,#1fa85c);border:3px solid var(--g);opacity:.6}
+.ball.main{width:92px;height:92px;font-size:46px;opacity:1;box-shadow:0 0 22px rgba(46,226,122,.5)}
+.ball.red{background:radial-gradient(circle at 35% 30%,#fff,#ffb0b0 55%,#e04545);border-color:var(--r)}
+.ball.vio{background:radial-gradient(circle at 35% 30%,#fff,#d8c4ff 55%,#8a5fe0);border-color:var(--v)}
+.two{display:flex;justify-content:space-between;font-size:13px;color:var(--mut)}
+.two b{display:block;color:var(--g);font-size:16px}
+.two div:last-child{text-align:right}
+.guess{display:flex;gap:10px;margin:12px 0}
+.guess div{flex:1;border:1px solid var(--line);border-radius:14px;padding:10px;text-align:center;font-weight:700;font-size:17px;color:var(--g)}
+.guess small{display:block;color:var(--mut);font-weight:400;font-size:12px}
+.btns{display:flex;gap:10px}
+button{flex:1;font:inherit;font-weight:700;font-size:16px;min-height:50px;border-radius:14px;border:1.5px solid var(--line);background:var(--card);color:var(--txt)}
+.go{background:linear-gradient(#2ee27a,#12a850);color:#04180c;border:0}
+.msg{min-height:22px;margin:12px 0 4px;font-size:14px;color:var(--mut)}
+.hist{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.chip{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:14px;border:2px solid var(--g);color:var(--g)}
+.chip.red{border-color:var(--r);color:var(--r)}.chip.vio{border-color:var(--v);color:var(--v)}
+.note{margin-top:12px;font-size:12px;color:var(--mut);line-height:1.5}
+.hide .hist,.hide .note{display:none}
+</style>
+</head>
+<body>
+<div class="app"><div class="panel" id="panel">
+<div class="head">
+<div><h1>PRACTICE <span>PANEL</span></h1><div class="ver">v1.0 Learning Edition</div></div>
+<div class="st">Status: <b>PRACTICE</b><br>Result: <b>RANDOM</b></div>
+</div>
+<div class="bar"><span>Round <b id="seq">11081</b></span><span>Mode <b>Big/Small</b></span><span>Points <b>Nakli</b></span></div>
+<div class="stage">
+<div class="balls"><div class="ball" id="b1">-</div><div class="ball main" id="b2">-</div><div class="ball" id="b3">-</div></div>
+<div class="two"><div>Size hits<b id="sh">0 / 0</b></div><div>Size accuracy<b id="acc">-</b></div></div>
+</div>
+<div class="guess"><div><small>Random size guess</small><span id="gs">-</span></div><div><small>Random color guess</small><span id="gc">-</span></div></div>
+<div class="btns"><button class="go" id="g">Random guess</button><button id="rv">Reveal result</button></div>
+<p class="msg" id="msg">Guess dabao, phir result reveal karo.</p>
+<div class="btns"><button id="hd">Hide history</button></div>
+<div class="hist" id="hist"></div>
+<div class="note">Result har baar random hota hai, isliye guess ki accuracy 50% ke aaspaas hi rahegi. Ye sirf coding practice hai.</div>
+</div></div>
+<script>
+var seq=11081,h=[],guess=null,rounds=0,hits=0;
+var $=function(i){return document.getElementById(i)};
+function col(n){return n===0||n===5?"vio":(n%2?"":"red")}
+function colors(n){var c=[n%2?"GREEN":"RED"];if(n===0||n===5)c.push("VIOLET");return c}
+function makeGuess(){
+  guess={s:Math.random()<.5?"BIG":"SMALL",c:["GREEN","RED","VIOLET"][Math.floor(Math.random()*3)]};
+  $("gs").textContent=guess.s;$("gc").textContent=guess.c;
+  $("msg").textContent="Guess set. Ab result reveal karo.";
+}
+function reveal(){
+  if(!guess)makeGuess();
+  var n=Math.floor(Math.random()*10),size=n>=5?"BIG":"SMALL";
+  rounds++;seq++;h.unshift(n);
+  var ok=guess.s===size;if(ok)hits++;
+  var cok=colors(n).indexOf(guess.c)>-1;
+  $("msg").textContent="Result "+n+" ("+size+"). Size guess "+(ok?"sahi":"galat")+", color guess "+(cok?"sahi":"galat")+".";
+  guess=null;$("gs").textContent="-";$("gc").textContent="-";draw();
+}
+function draw(){
+  $("seq").textContent=seq;
+  var b=[$("b1"),$("b2"),$("b3")],idx=[1,0,2];
+  for(var i=0;i<3;i++){var v=h[idx[i]];b[i].textContent=v===undefined?"-":v;b[i].className="ball"+(i===1?" main":"")+(v===undefined?"":" "+col(v));}
+  $("sh").textContent=hits+" / "+rounds;
+  $("acc").textContent=rounds?Math.round(hits/rounds*100)+"%":"-";
+  $("hist").innerHTML=h.slice(0,14).map(function(n){return'<div class="chip '+col(n)+'">'+n+'</div>'}).join("");
+}
+$("g").onclick=makeGuess;$("rv").onclick=reveal;
+$("hd").onclick=function(){var p=$("panel");p.classList.toggle("hide");$("hd").textContent=p.classList.contains("hide")?"Show history":"Hide history"};
+draw();
+</script>
+</body>
+</html>
